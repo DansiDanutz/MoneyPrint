@@ -1489,10 +1489,14 @@ class TestSocialMetadata(unittest.TestCase):
             '"hashtags":["#Tokyo","#Coffee","#Shorts"]}'
         )
 
-        with patch.object(llm, "_generate_response", return_value=llm_response):
+        with (
+            patch.object(llm, "_generate_response", return_value=llm_response),
+            patch.dict(config.app, {"api_key": "test-api-key"}),
+        ):
             response = TestClient(app).post(
                 "/api/v1/social-metadata",
                 json=request_body,
+                headers={"x-api-key": "test-api-key"},
             )
 
         self.assertEqual(response.status_code, 200)

@@ -324,6 +324,11 @@ After launching, the browser will open automatically
 
 #### ③ Launch the API Service 🚀
 
+Generate a unique API key, set `app.api_key` in your ignored `config.toml`, and
+send it in the `x-api-key` header on every `/api/v1` request. Protected routes
+return HTTP 503 while the server key is empty. The API binds to `127.0.0.1` by
+default; use `MPT_LISTEN_HOST=0.0.0.0` only behind an intentional access boundary.
+
 ```shell
 uv run python main.py
 ```

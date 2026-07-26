@@ -325,6 +325,11 @@ MPT_WEBUI_HOST=0.0.0.0 sh webui.sh
 
 #### ③ 启动 API 服务 🚀
 
+请先生成唯一 API 密钥，在被 Git 忽略的 `config.toml` 中设置 `app.api_key`，
+并在每个 `/api/v1` 请求中通过 `x-api-key` 请求头发送。服务端密钥为空时，
+受保护路由返回 HTTP 503。API 默认仅绑定 `127.0.0.1`；只有在明确的访问控制
+边界后方才应设置 `MPT_LISTEN_HOST=0.0.0.0`。
+
 ```shell
 uv run python main.py
 ```

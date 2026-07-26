@@ -20,5 +20,7 @@ services:
     ports:
       - "127.0.0.1:8080:8080"
     command: [ "python3", "main.py" ]
+    environment:
+      MPT_LISTEN_HOST: 0.0.0.0
     volumes: *common-volumes
     restart: always

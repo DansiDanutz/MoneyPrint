@@ -63,6 +63,15 @@ class TestControllerAuthentication(unittest.TestCase):
                 self.assertEqual(raised.exception.status_code, 401)
                 self.assertIn("invalid token", raised.exception.message)
 
+    def test_verify_token_fails_closed_without_server_key(self):
+        config.app["api_key"] = ""
+
+        with self.assertRaises(HttpException) as raised:
+            base.verify_token(self._request())
+
+        self.assertEqual(raised.exception.status_code, 503)
+        self.assertIn("not configured", raised.exception.message)
+
     def test_new_router_preserves_common_prefix_and_dependencies(self):
         """所有 V1 路由都应复用统一前缀，并仅在传入时设置鉴权依赖。"""
         dependency = object()

@@ -19,9 +19,10 @@ class TestConfigPersistence:
         example_config = self._load_example_config()
         app_config = example_config["app"]
 
-        assert example_config["listen_host"] == "0.0.0.0"
+        assert example_config["listen_host"] == "127.0.0.1"
         assert example_config["listen_port"] == 8080
         assert example_config["log_level"] == "DEBUG"
+        assert example_config["app"]["api_key"] == ""
         assert app_config["video_source"] in {"pexels", "pixabay", "coverr", "local"}
         assert "match_materials_to_script" in app_config
         assert example_config["whisper"]["device"] == "cpu"

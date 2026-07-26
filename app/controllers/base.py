@@ -19,13 +19,18 @@ def get_api_key(request: Request):
 
 
 def verify_token(request: Request):
+    request_id = get_task_id(request)
+    configured_token = config.app.get("api_key", "")
+    if not configured_token:
+        raise HttpException(
+            task_id=request_id,
+            status_code=503,
+            message=f"{request_id}: API authentication is not configured",
+        )
     token = get_api_key(request)
-    if token != config.app.get("api_key", ""):
-        request_id = get_task_id(request)
-        request_url = request.url
-        user_agent = request.headers.get("user-agent")
+    if token != configured_token:
         raise HttpException(
             task_id=request_id,
             status_code=401,
-            message=f"invalid token: {request_url}, {user_agent}",
+            message=f"{request_id}: invalid token",
         )

@@ -220,7 +220,7 @@ class TestVideoControllerTasks(unittest.TestCase):
 
             self.assertEqual(
                 response["data"]["videos"],
-                [f"/tasks/{task_id}/final-1.mp4"],
+                [f"/api/v1/stream/{task_id}/final-1.mp4"],
             )
             self.assertNotIn("cross_post_owner", response["data"])
             self.assertIn("cross_post_owner", sm.state.get_task(task_id))

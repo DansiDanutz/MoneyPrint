@@ -70,20 +70,25 @@ def get_application() -> FastAPI:
 
 app = get_application()
 
+
+def get_cors_origins() -> list[str]:
+    configured = os.getenv("CORS_ALLOWED_ORIGINS", "")
+    origins = (
+        [origin.strip() for origin in configured.split(",") if origin.strip()]
+        if configured
+        else ["http://127.0.0.1:8501", "http://localhost:8501"]
+    )
+    if not origins or "*" in origins:
+        raise RuntimeError("CORS_ALLOWED_ORIGINS must contain explicit origins")
+    return origins
+
 # Configures the CORS middleware for the FastAPI app
-cors_allowed_origins_str = os.getenv("CORS_ALLOWED_ORIGINS", "")
-origins = cors_allowed_origins_str.split(",") if cors_allowed_origins_str else ["*"]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=get_cors_origins(),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
-)
-
-task_dir = utils.task_dir()
-app.mount(
-    "/tasks", StaticFiles(directory=task_dir, html=True, follow_symlink=True), name=""
 )
 
 public_dir = utils.public_dir()

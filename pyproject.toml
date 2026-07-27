@@ -83,3 +83,7 @@ packages = ["app"]
 [tool.uv]
 # 当前项目以应用运行形态为主，不作为可发布的 Python 包安装。
 package = false
+# MoviePy 2.2.1 still declares Pillow < 12 even though its current source has
+# removed that upper bound. Keep the released MoviePy code while explicitly
+# selecting the patched Pillow release verified by our compatibility smoke test.
+override-dependencies = ["pillow==12.3.0"]

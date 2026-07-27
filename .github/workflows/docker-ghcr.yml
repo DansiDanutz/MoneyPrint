@@ -71,3 +71,16 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      - name: Verify published amd64 runtime
+        shell: bash
+        env:
+          PUBLISHED_TAGS: ${{ steps.meta.outputs.tags }}
+        run: |
+          published_image="$(printf '%s\n' "${PUBLISHED_TAGS}" | head -n 1)"
+          test -n "${published_image}"
+          docker pull --platform linux/amd64 "${published_image}"
+          published_revision="$(docker image inspect "${published_image}" --format '{{ index .Config.Labels "org.opencontainers.image.revision" }}')"
+          test "${published_revision}" = "${GITHUB_SHA}"
+          docker run --rm --platform linux/amd64 "${published_image}" python -c \
+            "import importlib.metadata; import app.asgi; assert importlib.metadata.version('pillow') == '12.3.0'; assert importlib.metadata.version('moviepy') == '2.2.1'"

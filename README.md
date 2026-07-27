@@ -281,19 +281,11 @@ uv python install 3.11
 uv sync --frozen
 ```
 
-如果你暂时不使用 `uv`，也可以继续使用 `venv + pip`
-
-```shell
-python3.11 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-```
-
 说明：
 
 - `pyproject.toml` 是主依赖定义文件
 - `uv.lock` 是锁文件，建议默认执行 `uv sync --frozen`
-- `requirements.txt` 仅保留给旧的 `pip` 安装方式兼容使用
+- 锁文件包含已审核的 MoviePy/Pillow 元数据覆盖，请使用 `uv sync --frozen`，不要将环境导出为 pip requirements
 
 #### ② 启动 WebUI 🌐
 

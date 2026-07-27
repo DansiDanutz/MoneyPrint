@@ -40,7 +40,7 @@ class TestControllerAuthentication(unittest.TestCase):
         """配置了 API Key 时，相同请求头必须正常通过鉴权。"""
         config.app["api_key"] = "secret"
 
-        result = base.verify_token(self._request({"x-api-key": "secret"}))
+        result = base.verify_token(self._request({"x-api-key": "secret"}), "secret")
 
         self.assertIsNone(result)
 
@@ -58,7 +58,7 @@ class TestControllerAuthentication(unittest.TestCase):
                     headers["x-api-key"] = provided_key
 
                 with self.assertRaises(HttpException) as raised:
-                    base.verify_token(self._request(headers))
+                    base.verify_token(self._request(headers), provided_key)
 
                 self.assertEqual(raised.exception.status_code, 401)
                 self.assertIn("invalid token", raised.exception.message)
@@ -67,7 +67,7 @@ class TestControllerAuthentication(unittest.TestCase):
         config.app["api_key"] = ""
 
         with self.assertRaises(HttpException) as raised:
-            base.verify_token(self._request())
+            base.verify_token(self._request(), None)
 
         self.assertEqual(raised.exception.status_code, 503)
         self.assertIn("not configured", raised.exception.message)

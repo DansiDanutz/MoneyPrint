@@ -2483,6 +2483,7 @@ def _credential_signature(value: str) -> str:
     # authentication. The random key prevents stable offline comparisons.
     # lgtm[py/weak-sensitive-data-hashing]
     return hashlib.blake2b(
+        # lgtm[py/weak-sensitive-data-hashing]
         normalized_value.encode("utf-8"),
         key=_CREDENTIAL_CACHE_SALT,
         digest_size=32,

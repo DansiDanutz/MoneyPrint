@@ -1,14 +1,19 @@
 # Use an official Python runtime as a parent image
 FROM python:3.11-slim-bullseye
 
-# Set the working directory in the container
+# Keep the published image compatible with the conventional first Linux user.
+# Compose can map the process to a different host UID/GID when required.
+ARG RUNTIME_UID=1000
+ARG RUNTIME_GID=1000
+RUN groupadd --gid "${RUNTIME_GID}" moneyprint && \
+    useradd --uid "${RUNTIME_UID}" --gid moneyprint --create-home moneyprint
+
+# Set the working directory in the container.
 WORKDIR /MoneyPrinterTurbo
 
-# 设置/MoneyPrinterTurbo目录权限为777
-RUN chmod 777 /MoneyPrinterTurbo
-
 ENV PYTHONPATH="/MoneyPrinterTurbo" \
-    PATH="/MoneyPrinterTurbo/.venv/bin:$PATH"
+    PATH="/MoneyPrinterTurbo/.venv/bin:$PATH" \
+    HOME="/home/moneyprint"
 
 # 本地用户默认继续优先使用国内镜像；GitHub Actions 发布 GHCR 镜像时使用 default，
 # 避免海外 runner 访问国内镜像过慢导致镜像发布长时间卡住。
@@ -64,8 +69,17 @@ RUN if [ "$PIP_USE_OFFICIAL" = "1" ]; then \
     fi && \
     uv sync --frozen --no-dev --python /usr/local/bin/python
 
-# Now copy the rest of the codebase into the image
-COPY . .
+# Copy the code with only the ownership needed by the runtime identity. The
+# virtual environment remains root-owned and read-only to the application.
+COPY --chown=moneyprint:moneyprint . .
+
+# Generated media and temporary state must be writable without granting the
+# application root privileges or making the whole worktree world-writable.
+RUN mkdir -p storage temp output && \
+    chown moneyprint:moneyprint /MoneyPrinterTurbo && \
+    chown -R moneyprint:moneyprint storage temp output /home/moneyprint
+
+USER moneyprint
 
 # Expose the port the app runs on
 EXPOSE 8501

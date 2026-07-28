@@ -25,8 +25,6 @@ root_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 if root_dir not in sys.path:
     sys.path.append(root_dir)
 
-_CREDENTIAL_CACHE_SALT = secrets.token_bytes(32)
-
 from app.config import config
 from app.models import const
 from app.models.llm_provider import (
@@ -249,6 +247,9 @@ def _initialize_session_state():
         # 最近一次从当前页面提交的任务。生成改为后台执行后，页面 Fragment
         # 通过这个 ID 查询状态；刷新时不再依赖正在执行的旧页面脚本。
         "current_generation_task_id": "",
+        # Preserve credential-derived cache fingerprints across Streamlit reruns
+        # while keeping the salt isolated to this browser session.
+        "credential_cache_salt": secrets.token_bytes(32),
     }
     for key, value in defaults.items():
         st.session_state.setdefault(key, value)
@@ -2484,7 +2485,7 @@ def _credential_signature(value: str) -> str:
     # to offline guessing if a diagnostic snapshot ever exposes the digest.
     return hashlib.scrypt(
         normalized_value.encode("utf-8"),
-        salt=_CREDENTIAL_CACHE_SALT,
+        salt=st.session_state["credential_cache_salt"],
         n=2**14,
         r=8,
         p=1,

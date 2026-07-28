@@ -2,7 +2,10 @@
 
 The adjacent JSON file is a fail-closed, exact-location allowlist for findings
 that CodeQL cannot currently prove safe. A rule, path, or line change makes CI
-fail and requires a new review. It is not a rule-wide exclusion.
+fail and requires a new review. Full-tree scans also fail when any configured
+finding disappears, forcing stale exceptions to be removed. Pull-request scans
+cannot enforce presence because GitHub omits unchanged base findings from their
+SARIF. This is not a rule-wide exclusion.
 
 - `app/utils/file_security.py:35` validates that a resolved path is an existing
   file only after `realpath` and `commonpath` prove containment in the allowed

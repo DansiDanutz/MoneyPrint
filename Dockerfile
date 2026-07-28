@@ -1,9 +1,12 @@
 # Use an official Python runtime as a parent image
 FROM python:3.11-slim-bullseye
 
-# Create an unprivileged runtime identity before installing the application.
-RUN groupadd --system moneyprint && \
-    useradd --system --gid moneyprint --create-home moneyprint
+# Keep the published image compatible with the conventional first Linux user.
+# Compose can map the process to a different host UID/GID when required.
+ARG RUNTIME_UID=1000
+ARG RUNTIME_GID=1000
+RUN groupadd --gid "${RUNTIME_GID}" moneyprint && \
+    useradd --uid "${RUNTIME_UID}" --gid moneyprint --create-home moneyprint
 
 # Set the working directory in the container.
 WORKDIR /MoneyPrinterTurbo
@@ -73,6 +76,7 @@ COPY --chown=moneyprint:moneyprint . .
 # Generated media and temporary state must be writable without granting the
 # application root privileges or making the whole worktree world-writable.
 RUN mkdir -p storage temp output && \
+    chown moneyprint:moneyprint /MoneyPrinterTurbo && \
     chown -R moneyprint:moneyprint storage temp output /home/moneyprint
 
 USER moneyprint

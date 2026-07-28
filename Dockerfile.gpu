@@ -4,12 +4,18 @@ FROM nvidia/cuda:12.1.1-cudnn8-runtime-ubuntu22.04
 # Avoid interactive timezone prompt
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Set the working directory in the container
+# Match the CPU image's unprivileged runtime identity. Compose can map this to
+# the host UID/GID so bind-mounted configuration and media remain writable.
+ARG RUNTIME_UID=1000
+ARG RUNTIME_GID=1000
+RUN groupadd --gid "${RUNTIME_GID}" moneyprint && \
+    useradd --uid "${RUNTIME_UID}" --gid moneyprint --create-home moneyprint
+
 WORKDIR /MoneyPrinterTurbo
-RUN chmod 777 /MoneyPrinterTurbo
 
 ENV PYTHONPATH="/MoneyPrinterTurbo" \
-    PATH="/MoneyPrinterTurbo/.venv/bin:$PATH"
+    PATH="/MoneyPrinterTurbo/.venv/bin:$PATH" \
+    HOME="/home/moneyprint"
 
 # Install Python 3.11 and system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -44,8 +50,15 @@ RUN python3 -m pip install --no-cache-dir \
     --retries 3 --timeout 60 uv==0.11.7 && \
     uv sync --frozen --no-dev --python /usr/bin/python3.11
 
-# Now copy the rest of the codebase into the image
-COPY . .
+# Keep the application code owned by the runtime identity while leaving the
+# locked virtual environment root-owned and read-only.
+COPY --chown=moneyprint:moneyprint . .
+
+RUN mkdir -p storage temp output && \
+    chown moneyprint:moneyprint /MoneyPrinterTurbo && \
+    chown -R moneyprint:moneyprint storage temp output /home/moneyprint
+
+USER moneyprint
 
 # Expose the port the app runs on
 EXPOSE 8501

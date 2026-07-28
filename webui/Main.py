@@ -2479,15 +2479,17 @@ def _credential_signature(value: str) -> str:
     normalized_value = str(value or "")
     if not normalized_value:
         return ""
-    # This is a process-local cache fingerprint, not password storage or
-    # authentication. The random key prevents stable offline comparisons.
-    # lgtm[py/weak-sensitive-data-hashing]
-    return hashlib.blake2b(
-        # lgtm[py/weak-sensitive-data-hashing]
+    # Use a deliberately expensive one-way derivation even though this value is
+    # only a process-local cache fingerprint. That keeps credentials resistant
+    # to offline guessing if a diagnostic snapshot ever exposes the digest.
+    return hashlib.scrypt(
         normalized_value.encode("utf-8"),
-        key=_CREDENTIAL_CACHE_SALT,
-        digest_size=32,
-    ).hexdigest()
+        salt=_CREDENTIAL_CACHE_SALT,
+        n=2**14,
+        r=8,
+        p=1,
+        dklen=32,
+    ).hex()
 
 
 def _get_voice_preview_provider_signature(tts_server: str) -> dict:

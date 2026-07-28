@@ -33,5 +33,13 @@ jobs:
           category: /language:python
           output: ../results
 
-      - name: Require a clean CodeQL result set
-        run: jq -s -e '([.[].runs[].results[]?] | length) == 0' ../results/*.sarif
+      - name: Test the SARIF verifier
+        run: node --test test/codeql-sarif-verifier.test.mjs
+
+      - name: Require no unaccepted CodeQL findings in the pull request
+        if: github.event_name == 'pull_request'
+        run: node scripts/verify-codeql-sarif.mjs ../results
+
+      - name: Require the exact reviewed full-tree CodeQL result set
+        if: github.event_name != 'pull_request'
+        run: node scripts/verify-codeql-sarif.mjs ../results --require-all

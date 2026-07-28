@@ -31,7 +31,8 @@ def resolve_path_within_directory(
 
     # CodeQL does not model the realpath/commonpath containment check above.
     # The candidate is proven to remain inside base_dir_real before this sink.
-    if require_file and not os.path.isfile(resolved_path):  # lgtm[py/path-injection]
+    # lgtm[py/path-injection]
+    if require_file and not os.path.isfile(resolved_path):
         raise ValueError("file does not exist")
 
     return resolved_path

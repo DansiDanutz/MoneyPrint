@@ -2479,6 +2479,9 @@ def _credential_signature(value: str) -> str:
     normalized_value = str(value or "")
     if not normalized_value:
         return ""
+    # This is a process-local cache fingerprint, not password storage or
+    # authentication. The random key prevents stable offline comparisons.
+    # lgtm[py/weak-sensitive-data-hashing]
     return hashlib.blake2b(
         normalized_value.encode("utf-8"),
         key=_CREDENTIAL_CACHE_SALT,

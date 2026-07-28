@@ -306,7 +306,8 @@ def delete_video(request: Request, task_id: str = Path(..., description="Task ID
         if os.path.exists(current_task_dir):
             # Basename equality above rejects separators and traversal before
             # this destructive sink; CodeQL does not model that invariant.
-            shutil.rmtree(current_task_dir)  # lgtm[py/path-injection]
+            # lgtm[py/path-injection]
+            shutil.rmtree(current_task_dir)
 
         sm.state.delete_task(task_id)
         logger.success(f"video deleted: {utils.to_json(task)}")
@@ -444,12 +445,14 @@ async def stream_video(request: Request, file_path: str):
     range_header = request.headers.get("Range")
     # _resolve_path_within_directory proves realpath containment and file
     # existence; CodeQL does not model that shared sanitizer.
-    video_size = os.path.getsize(video_path)  # lgtm[py/path-injection]
+    # lgtm[py/path-injection]
+    video_size = os.path.getsize(video_path)
     start, end = _parse_byte_range(range_header, video_size, request_id)
     length = end - start + 1
 
     def file_iterator(file_path, offset=0, bytes_to_read=None):
-        with open(file_path, "rb") as f:  # lgtm[py/path-injection]
+        # lgtm[py/path-injection]
+        with open(file_path, "rb") as f:
             f.seek(offset, os.SEEK_SET)
             remaining = bytes_to_read or video_size
             while remaining > 0:
@@ -487,7 +490,8 @@ async def download_video(request: Request, file_path: str):
     extension = file_path.suffix
     headers = {"Content-Disposition": f"attachment; filename={filename}{extension}"}
     return FileResponse(
-        path=video_path,  # lgtm[py/path-injection]
+        # lgtm[py/path-injection]
+        path=video_path,
         headers=headers,
         filename=f"{filename}{extension}",
         media_type=f"video/{extension[1:]}",

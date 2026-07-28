@@ -1,0 +1,9 @@
+[
+  {"ruleId":"py/path-injection","path":"app/utils/file_security.py","startLine":35},
+  {"ruleId":"py/path-injection","path":"app/controllers/v1/video.py","startLine":306},
+  {"ruleId":"py/path-injection","path":"app/controllers/v1/video.py","startLine":310},
+  {"ruleId":"py/path-injection","path":"app/controllers/v1/video.py","startLine":449},
+  {"ruleId":"py/path-injection","path":"app/controllers/v1/video.py","startLine":455},
+  {"ruleId":"py/path-injection","path":"app/controllers/v1/video.py","startLine":494},
+  {"ruleId":"py/clear-text-storage-sensitive-data","path":"test/services/test_mpt_agent_skill.py","startLine":145}
+]

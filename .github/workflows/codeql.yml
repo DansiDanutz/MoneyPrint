@@ -33,5 +33,5 @@ jobs:
           category: /language:python
           output: ../results
 
-      - name: Require a clean CodeQL result set
-        run: jq -s -e '([.[].runs[].results[]?] | length) == 0' ../results/*.sarif
+      - name: Require no unaccepted CodeQL findings
+        run: node scripts/verify-codeql-sarif.mjs ../results

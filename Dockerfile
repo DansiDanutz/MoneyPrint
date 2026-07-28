@@ -1,14 +1,16 @@
 # Use an official Python runtime as a parent image
 FROM python:3.11-slim-bullseye
 
-# Set the working directory in the container
+# Create an unprivileged runtime identity before installing the application.
+RUN groupadd --system moneyprint && \
+    useradd --system --gid moneyprint --create-home moneyprint
+
+# Set the working directory in the container.
 WORKDIR /MoneyPrinterTurbo
 
-# 设置/MoneyPrinterTurbo目录权限为777
-RUN chmod 777 /MoneyPrinterTurbo
-
 ENV PYTHONPATH="/MoneyPrinterTurbo" \
-    PATH="/MoneyPrinterTurbo/.venv/bin:$PATH"
+    PATH="/MoneyPrinterTurbo/.venv/bin:$PATH" \
+    HOME="/home/moneyprint"
 
 # 本地用户默认继续优先使用国内镜像；GitHub Actions 发布 GHCR 镜像时使用 default，
 # 避免海外 runner 访问国内镜像过慢导致镜像发布长时间卡住。
@@ -64,8 +66,16 @@ RUN if [ "$PIP_USE_OFFICIAL" = "1" ]; then \
     fi && \
     uv sync --frozen --no-dev --python /usr/local/bin/python
 
-# Now copy the rest of the codebase into the image
-COPY . .
+# Copy the code with only the ownership needed by the runtime identity. The
+# virtual environment remains root-owned and read-only to the application.
+COPY --chown=moneyprint:moneyprint . .
+
+# Generated media and temporary state must be writable without granting the
+# application root privileges or making the whole worktree world-writable.
+RUN mkdir -p storage temp output && \
+    chown -R moneyprint:moneyprint storage temp output /home/moneyprint
+
+USER moneyprint
 
 # Expose the port the app runs on
 EXPOSE 8501

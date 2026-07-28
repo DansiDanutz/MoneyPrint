@@ -325,6 +325,24 @@ class TestVideoControllerTasks(unittest.TestCase):
         self.assertEqual(response["status"], 200)
         delete_task.assert_called_once_with("completed-task")
 
+    def test_delete_rejects_task_id_path_traversal(self):
+        completed_task = {
+            "task_id": "../outside",
+            "state": const.TASK_STATE_COMPLETE,
+            "progress": 100,
+        }
+
+        with patch.object(
+            video_controller.sm.state,
+            "get_task",
+            return_value=completed_task,
+        ), patch.object(video_controller.shutil, "rmtree") as remove_tree:
+            with self.assertRaises(HttpException) as raised:
+                video_controller.delete_video(self._request(), task_id="../outside")
+
+        self.assertEqual(raised.exception.status_code, 400)
+        remove_tree.assert_not_called()
+
     def test_get_and_delete_missing_task_return_404(self):
         """查询或删除未知任务都应返回一致的 404，而不是空成功响应。"""
         with patch.object(video_controller.sm.state, "get_task", return_value=None):

@@ -468,7 +468,7 @@ class TestLiteLLMProvider(unittest.TestCase):
             result = llm._generate_response("test")
 
         openai_client.assert_not_called()
-        self.assertIn("unsupported llm provider", result)
+        self.assertEqual(result, "Error: LLM provider request failed")
 
     def test_pollinations_requires_api_key_before_request(self):
         """新统一 API 要求鉴权，缺少 Key 时不得发送匿名生成请求。"""
@@ -485,7 +485,7 @@ class TestLiteLLMProvider(unittest.TestCase):
             result = llm._generate_response("test")
 
         openai_client.assert_not_called()
-        self.assertIn("api_key is not set", result)
+        self.assertEqual(result, "Error: LLM provider request failed")
 
     def test_pollinations_uses_unified_openai_compatible_api(self):
         """历史地址和模型名应自动迁移，并通过统一 Chat Completions API 调用。"""
@@ -585,7 +585,7 @@ class TestLiteLLMProvider(unittest.TestCase):
             result = llm._generate_response("test")
 
         openai_client.assert_not_called()
-        self.assertIn("account_id is not set", result)
+        self.assertEqual(result, "Error: LLM provider request failed")
 
     def test_cloudflare_uses_ai_gateway_openai_endpoint(self):
         """Cloudflare Provider 必须走 AI Gateway，不再调用 Workers AI 接口。"""
@@ -701,7 +701,7 @@ class TestLiteLLMProvider(unittest.TestCase):
             result = llm._generate_response("test")
 
         self.assertIn("Error:", result)
-        self.assertIn("returned empty response", result)
+        self.assertEqual(result, "Error: LLM provider request failed")
 
     def test_litellm_provider_handles_empty_message(self):
         """
@@ -721,7 +721,7 @@ class TestLiteLLMProvider(unittest.TestCase):
             result = llm._generate_response("test")
 
         self.assertIn("Error:", result)
-        self.assertIn("returned empty message", result)
+        self.assertEqual(result, "Error: LLM provider request failed")
 
     def test_sanitize_error_message_redacts_url_credentials_and_query_tokens(self):
         message = (
@@ -770,8 +770,7 @@ class TestLiteLLMProvider(unittest.TestCase):
             result = llm._generate_response("test")
 
         self.assertIn("Error:", result)
-        self.assertIn("https://***:***@proxy.example.com", result)
-        self.assertIn("access_token=***", result)
+        self.assertEqual(result, "Error: LLM provider request failed")
         self.assertNotIn("myuser", result)
         self.assertNotIn("mypassword", result)
         self.assertNotIn("secret-token", result)
@@ -785,7 +784,7 @@ class TestLiteLLMProvider(unittest.TestCase):
         result = llm._generate_response("test")
 
         self.assertIn("Error:", result)
-        self.assertIn("api_key is not set", result)
+        self.assertEqual(result, "Error: LLM provider request failed")
         self.assertNotIn("litellm", result.lower())
 
     def _use_qwen_provider(self):
@@ -856,7 +855,7 @@ class TestLiteLLMProvider(unittest.TestCase):
             result = llm._generate_response("Say hello")
 
         self.assertIn("Error:", result)
-        self.assertIn("returned empty text content", result)
+        self.assertEqual(result, "Error: LLM provider request failed")
         self.assertNotIn("NoneType", result)
 
     def test_qwen_provider_reports_empty_choices(self):
@@ -868,7 +867,7 @@ class TestLiteLLMProvider(unittest.TestCase):
             result = llm._generate_response("Say hello")
 
         self.assertIn("Error:", result)
-        self.assertIn("returned empty choices", result)
+        self.assertEqual(result, "Error: LLM provider request failed")
         self.assertNotIn("NoneType", result)
 
     def test_aihubmix_provider_uses_openai_compatible_client(self):
@@ -1043,7 +1042,7 @@ class TestLiteLLMProvider(unittest.TestCase):
         result = llm._generate_response("test")
 
         self.assertIn("Error:", result)
-        self.assertIn("api_key is not set", result)
+        self.assertEqual(result, "Error: LLM provider request failed")
         self.assertNotIn("litellm", result.lower())
 
     def test_groq_provider_requires_api_key(self):
@@ -1055,7 +1054,7 @@ class TestLiteLLMProvider(unittest.TestCase):
         result = llm._generate_response("test")
 
         self.assertIn("Error:", result)
-        self.assertIn("api_key is not set", result)
+        self.assertEqual(result, "Error: LLM provider request failed")
         self.assertNotIn("litellm", result.lower())
 
     def test_groq_provider_uses_default_base_url(self):
@@ -1268,7 +1267,7 @@ class TestLiteLLMProvider(unittest.TestCase):
         result = llm._generate_response("test")
 
         self.assertIn("Error:", result)
-        self.assertIn("unsupported llm provider", result)
+        self.assertEqual(result, "Error: LLM provider request failed")
 
 
 class TestRuntimeEnvironmentDetection(unittest.TestCase):

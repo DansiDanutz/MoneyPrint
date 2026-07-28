@@ -291,10 +291,22 @@ def delete_video(request: Request, task_id: str = Path(..., description="Task ID
                 message=f"{request_id}: task is still running",
             )
 
+        # Task identifiers are generated server-side, but the route value is still
+        # untrusted input. Basename equality rejects separators and traversal
+        # before the identifier reaches a destructive filesystem operation.
+        safe_task_id = os.path.basename(task_id)
+        if safe_task_id != task_id or safe_task_id in {"", ".", ".."}:
+            raise HttpException(
+                task_id=request_id,
+                status_code=400,
+                message=f"{request_id}: invalid task id",
+            )
         tasks_dir = utils.task_dir()
-        current_task_dir = os.path.join(tasks_dir, task_id)
+        current_task_dir = os.path.join(tasks_dir, safe_task_id)
         if os.path.exists(current_task_dir):
-            shutil.rmtree(current_task_dir)
+            # Basename equality above rejects separators and traversal before
+            # this destructive sink; CodeQL does not model that invariant.
+            shutil.rmtree(current_task_dir)  # lgtm[py/path-injection]
 
         sm.state.delete_task(task_id)
         logger.success(f"video deleted: {utils.to_json(task)}")
@@ -430,12 +442,14 @@ async def stream_video(request: Request, file_path: str):
     tasks_dir = utils.task_dir()
     video_path = _resolve_path_within_directory(tasks_dir, file_path, request_id)
     range_header = request.headers.get("Range")
-    video_size = os.path.getsize(video_path)
+    # _resolve_path_within_directory proves realpath containment and file
+    # existence; CodeQL does not model that shared sanitizer.
+    video_size = os.path.getsize(video_path)  # lgtm[py/path-injection]
     start, end = _parse_byte_range(range_header, video_size, request_id)
     length = end - start + 1
 
     def file_iterator(file_path, offset=0, bytes_to_read=None):
-        with open(file_path, "rb") as f:
+        with open(file_path, "rb") as f:  # lgtm[py/path-injection]
             f.seek(offset, os.SEEK_SET)
             remaining = bytes_to_read or video_size
             while remaining > 0:
@@ -473,7 +487,7 @@ async def download_video(request: Request, file_path: str):
     extension = file_path.suffix
     headers = {"Content-Disposition": f"attachment; filename={filename}{extension}"}
     return FileResponse(
-        path=video_path,
+        path=video_path,  # lgtm[py/path-injection]
         headers=headers,
         filename=f"{filename}{extension}",
         media_type=f"video/{extension[1:]}",

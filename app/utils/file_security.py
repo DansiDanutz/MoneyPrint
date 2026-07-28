@@ -29,7 +29,9 @@ def resolve_path_within_directory(
     if common_path != base_dir_real:
         raise ValueError("path is outside the allowed directory")
 
-    if require_file and not os.path.isfile(resolved_path):
+    # CodeQL does not model the realpath/commonpath containment check above.
+    # The candidate is proven to remain inside base_dir_real before this sink.
+    if require_file and not os.path.isfile(resolved_path):  # lgtm[py/path-injection]
         raise ValueError("file does not exist")
 
     return resolved_path

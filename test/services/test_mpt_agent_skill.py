@@ -139,7 +139,9 @@ class TestMptAgentSkill(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp_dir:
             config_path = Path(temp_dir) / "config.toml"
             secret = "already-configured-deepseek-key"
-            config_path.write_text(
+            # This test-only placeholder exercises redaction and never contains
+            # a deployable credential.
+            config_path.write_text(  # lgtm[py/clear-text-storage-sensitive-data]
                 MINIMAL_CONFIG.replace(
                     'deepseek_api_key = ""', f'deepseek_api_key = "{secret}"'
                 ).replace("pexels_api_keys = []", 'pexels_api_keys = ["key"]'),

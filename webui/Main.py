@@ -1,4 +1,5 @@
 import hashlib
+import secrets
 import html
 import json
 import math
@@ -23,6 +24,8 @@ from streamlit_tour import Tour
 root_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 if root_dir not in sys.path:
     sys.path.append(root_dir)
+
+_CREDENTIAL_CACHE_SALT = secrets.token_bytes(32)
 
 from app.config import config
 from app.models import const
@@ -2476,7 +2479,11 @@ def _credential_signature(value: str) -> str:
     normalized_value = str(value or "")
     if not normalized_value:
         return ""
-    return hashlib.sha256(normalized_value.encode("utf-8")).hexdigest()
+    return hashlib.blake2b(
+        normalized_value.encode("utf-8"),
+        key=_CREDENTIAL_CACHE_SALT,
+        digest_size=32,
+    ).hexdigest()
 
 
 def _get_voice_preview_provider_signature(tts_server: str) -> dict:

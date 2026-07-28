@@ -50,7 +50,11 @@ def _load_provider_signature(test_config):
         }
     ]
     module = ast.Module(body=functions, type_ignores=[])
-    namespace = {"hashlib": hashlib, "config": test_config}
+    namespace = {
+        "hashlib": hashlib,
+        "config": test_config,
+        "_CREDENTIAL_CACHE_SALT": b"test-only-cache-salt",
+    }
     exec(compile(module, str(WEBUI_MAIN), "exec"), namespace)
     return namespace["_get_voice_preview_provider_signature"]
 

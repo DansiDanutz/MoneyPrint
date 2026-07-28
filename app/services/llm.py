@@ -396,7 +396,11 @@ def _generate_response(prompt: str) -> str:
             )
 
     except Exception as e:
-        return f"Error: {_sanitize_error_message(e)}"
+        # Provider exceptions may include request URLs, response fragments, or
+        # SDK internals. Keep a redacted diagnostic server-side and expose only
+        # a stable public failure marker to API and WebUI callers.
+        logger.error(f"LLM provider request failed: {_sanitize_error_message(e)}")
+        return "Error: LLM provider request failed"
 
 
 def test_connection() -> tuple[bool, str, float]:

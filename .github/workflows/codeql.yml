@@ -31,3 +31,7 @@ jobs:
         uses: github/codeql-action/analyze@c54b30b7df092240050e69945842bc67aee0f0f4 # v3
         with:
           category: /language:python
+          output: ../results
+
+      - name: Require a clean CodeQL result set
+        run: jq -s -e '([.[].runs[].results[]?] | length) == 0' ../results/*.sarif
